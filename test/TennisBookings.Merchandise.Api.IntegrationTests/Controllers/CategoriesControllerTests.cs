@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
+using System.Net.Http.Json;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -27,6 +28,27 @@ namespace TennisBookings.Merchandise.Api.IntegrationTests.Controllers
             factory.ClientOptions.BaseAddress = new Uri("http://localhost/api/categories");
             _httpClient = factory.CreateClient();
         }
+
+        [Fact]
+        public async Task GetAll_ReturnsExpectedJson()
+        {
+            var expectedCategories = new List<string> { "Accessories", "Bags", "Balls", "Clothing", "Rackets" };
+
+            // By using the "System.Net.Http.Json.HttpClientJsonExtensions.GetFromJsonAsync<>" extension method,
+            // it already covers the following cases:
+            // - Uses case-insensitive deserialization 
+            // - Validates response has success status code
+            // - Validates Content-Type header
+            // - Validates response includes content
+
+            var model = await _httpClient.GetFromJsonAsync<ExpectedCategoriesModel>("");
+
+            Assert.NotNull(model?.AllowedCategories);
+            Assert.Equal(expectedCategories.OrderBy(c => c), model.AllowedCategories.OrderBy(c => c));
+        }
+
+        #region Previous 4 tests simplified into the new "GetAll_ReturnsExpectedJson" above:
+        /* 
 
         [Fact]
         public async Task GetAll_ReturnsSuccessStatusCode()
@@ -65,6 +87,9 @@ namespace TennisBookings.Merchandise.Api.IntegrationTests.Controllers
 
             Assert.NotNull(model?.AllowedCategories);
             Assert.Equal(expectedCategories.OrderBy(c => c), model.AllowedCategories.OrderBy(c => c));
-        }
+        } 
+        
+        */
+        #endregion
     }
 }
