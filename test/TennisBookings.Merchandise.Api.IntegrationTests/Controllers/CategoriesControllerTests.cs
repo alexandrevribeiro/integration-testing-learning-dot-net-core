@@ -17,13 +17,21 @@ namespace TennisBookings.Merchandise.Api.IntegrationTests.Controllers
 
         public CategoriesControllerTests(WebApplicationFactory<Startup> factory)
         {
-            _httpClient = factory.CreateDefaultClient();
+            // Centralizing the base API endpoint address
+
+            // Option 1) Use "CreateDefaultClient" providing the base address
+            // _httpClient = factory.CreateDefaultClient(new Uri("http://localhost/api/categories"));
+
+            // Option 2) Use "CreateHttpClient" (which follows redirects and handles cookies), and is configured
+            // by using "factory.ClientOptions"
+            factory.ClientOptions.BaseAddress = new Uri("http://localhost/api/categories");
+            _httpClient = factory.CreateClient();
         }
 
         [Fact]
         public async Task GetAll_ReturnsSuccessStatusCode()
         {
-            var response = await _httpClient.GetAsync("/api/categories");
+            var response = await _httpClient.GetAsync("");
 
             response.EnsureSuccessStatusCode();
         }
@@ -31,7 +39,7 @@ namespace TennisBookings.Merchandise.Api.IntegrationTests.Controllers
         [Fact]
         public async Task GetAll_ReturnsExpectedMediaType()
         {
-            var response = await _httpClient.GetAsync("/api/categories");
+            var response = await _httpClient.GetAsync("");
 
             Assert.Equal("application/json", response.Content.Headers.ContentType.MediaType);
         }
@@ -39,7 +47,7 @@ namespace TennisBookings.Merchandise.Api.IntegrationTests.Controllers
         [Fact]
         public async Task GetAll_ReturnsContent()
         {
-            var response = await _httpClient.GetAsync("/api/categories");
+            var response = await _httpClient.GetAsync("");
 
             Assert.NotNull(response.Content);
             Assert.True(response.Content.Headers.ContentLength > 0);
@@ -50,7 +58,7 @@ namespace TennisBookings.Merchandise.Api.IntegrationTests.Controllers
         {
             var expectedCategories = new List<string> { "Accessories", "Bags", "Balls", "Clothing", "Rackets" };
 
-            var responseStream = await _httpClient.GetStreamAsync("/api/categories");
+            var responseStream = await _httpClient.GetStreamAsync("");
 
             var model = await JsonSerializer.DeserializeAsync<ExpectedCategoriesModel>(responseStream,
                 JsonSerializerHelper.DefaultDeserialisationOptions);
