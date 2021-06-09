@@ -47,6 +47,17 @@ namespace TennisBookings.Merchandise.Api.IntegrationTests.Controllers
             Assert.Equal(expectedCategories.OrderBy(c => c), model.AllowedCategories.OrderBy(c => c));
         }
 
+        [Fact]
+        public async Task GetAll_SetsExpectedCacheControlHeader()
+        {
+            var respose = await _httpClient.GetAsync("");
+            var cacheHeader = respose.Headers.CacheControl;
+
+            Assert.True(cacheHeader.MaxAge.HasValue);
+            Assert.Equal(TimeSpan.FromMinutes(5), cacheHeader.MaxAge);
+            Assert.True(cacheHeader.Public);
+        }
+
         #region Previous 4 tests simplified into the new "GetAll_ReturnsExpectedJson" above:
         /* 
 
