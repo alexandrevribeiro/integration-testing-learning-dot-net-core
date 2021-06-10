@@ -14,7 +14,7 @@ namespace TennisBookings.Merchandise.Api.Controllers
         [HttpGet("total")]
         public IActionResult Total()
         {
-            return Ok();
+            return Ok("{\"stockItemTotal\":100}");
         }
     }
 }

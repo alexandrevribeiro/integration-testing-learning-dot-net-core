@@ -25,5 +25,13 @@ namespace TennisBookings.Merchandise.Api.IntegrationTests.Controllers
             var response = await _httpClient.GetAsync("total");
             response.EnsureSuccessStatusCode();
         }
+
+        [Fact]
+        public async Task GetStockTotal_ReturnsExpectedJsonContentString()
+        {
+            var response = await _httpClient.GetStringAsync("total");
+
+            Assert.Equal("{\"stockItemTotal\":100}", response);
+        }
     }
 }
