@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using TennisBookings.Merchandise.Api.Models.Output;
 
 namespace TennisBookings.Merchandise.Api.Controllers
 {
@@ -14,7 +15,7 @@ namespace TennisBookings.Merchandise.Api.Controllers
         [HttpGet("total")]
         public IActionResult Total()
         {
-            return Ok("{\"stockItemTotal\":100}");
+            return new JsonResult(new StockTotalOutputModel { StockItemTotal = 100 });
         }
     }
 }

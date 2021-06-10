@@ -33,5 +33,13 @@ namespace TennisBookings.Merchandise.Api.IntegrationTests.Controllers
 
             Assert.Equal("{\"stockItemTotal\":100}", response);
         }
+
+        [Fact]
+        public async Task GetStockTotal_ReturnsExpectedContentType()
+        {
+            var response = await _httpClient.GetAsync("total");
+
+            Assert.Equal("application/json", response.Content.Headers.ContentType.MediaType);
+        }
     }
 }
