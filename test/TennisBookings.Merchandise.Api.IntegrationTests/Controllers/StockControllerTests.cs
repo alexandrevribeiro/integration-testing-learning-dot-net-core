@@ -2,8 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
+using System.Net.Http.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc.Testing;
+using TennisBookings.Merchandise.Api.IntegrationTests.Models;
 using Xunit;
 
 namespace TennisBookings.Merchandise.Api.IntegrationTests.Controllers
@@ -14,11 +16,22 @@ namespace TennisBookings.Merchandise.Api.IntegrationTests.Controllers
 
         public StockControllerTests(WebApplicationFactory<Startup> factory)
         {
-            //factory.ClientOptions.BaseAddress = new Uri("http://localhost/api/stock");
-
-            _httpClient = factory.CreateDefaultClient(new Uri("http://localhost/api/stock/"));
+            factory.ClientOptions.BaseAddress = new Uri("http://localhost/api/stock/");
+            _httpClient = factory.CreateClient();
         }
 
+        [Fact]
+        public async Task GetStockTotal_ReturnsExpectedJson()
+        {
+            var model = await _httpClient.GetFromJsonAsync<ExpectedStockTotalOutputModel>("total");
+
+            Assert.NotNull(model);
+            Assert.True(model.StockItemTotal > 0);            
+        }
+
+        #region Previous tests simplified into the new "GetStockTotal_ReturnsExpectedJson" above:
+
+        /*
         [Fact]
         public async Task GetStockTotal_ReturnsSuccessStatusCode()
         {
@@ -41,5 +54,7 @@ namespace TennisBookings.Merchandise.Api.IntegrationTests.Controllers
 
             Assert.Equal("application/json", response.Content.Headers.ContentType.MediaType);
         }
+         */
+        #endregion
     }
 }
