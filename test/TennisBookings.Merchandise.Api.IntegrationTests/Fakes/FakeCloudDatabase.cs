@@ -13,6 +13,8 @@ namespace TennisBookings.Merchandise.Api.IntegrationTests.Fakes
 
         public List<ProductDto> Products { get; set; }
 
+        public bool ShouldThrow { get; set; }
+
         public FakeCloudDatabase(IReadOnlyCollection<ProductDto> products = null)
         {
             ReplaceCustomProducts(products);
@@ -28,8 +30,13 @@ namespace TennisBookings.Merchandise.Api.IntegrationTests.Fakes
             return Task.CompletedTask;
         }
 
-        public Task<IReadOnlyCollection<ProductDto>> ScanAsync() =>
+        public Task<IReadOnlyCollection<ProductDto>> ScanAsync()
+        {
+            if (ShouldThrow)
+                throw new Exception("Test exception!");
+
             Task.FromResult(Products as IReadOnlyCollection<ProductDto>);
+        }
 
 
         #region Helping methods
