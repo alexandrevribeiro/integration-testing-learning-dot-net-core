@@ -12,6 +12,7 @@ using Microsoft.Extensions.DependencyInjection;
 using TennisBookings.Merchandise.Api.Data;
 using TennisBookings.Merchandise.Api.Data.Dto;
 using TennisBookings.Merchandise.Api.External.Database;
+using TennisBookings.Merchandise.Api.External.Queue;
 using TennisBookings.Merchandise.Api.IntegrationTests.Fakes;
 using TennisBookings.Merchandise.Api.IntegrationTests.Models;
 using TennisBookings.Merchandise.Api.IntegrationTests.TestHelpers.Serialization;
@@ -109,6 +110,24 @@ namespace TennisBookings.Merchandise.Api.IntegrationTests.Controllers
 
             var getResponse = await _client.GetAsync(response.Headers.Location.ToString());
             getResponse.EnsureSuccessStatusCode();
+        }
+
+        [Fact]
+        public async Task Post_WithValidProduct_SendsQueueMessage()
+        {
+            var cloudQueue = new FakeCloudQueue();
+            var client = _factory.WithWebHostBuilder(builder =>
+            {
+                builder.ConfigureTestServices(services =>
+                {
+                    services.AddSingleton<ICloudQueue>(cloudQueue);
+                });
+            }).CreateClient();
+
+            var content = GetValidProductJsonContent(Guid.NewGuid());
+            var response = await client.PostAsync("", content);
+
+            Assert.Single(cloudQueue.Requests);
         }
 
         /*
