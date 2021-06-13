@@ -3,10 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using TennisBookings.Merchandise.Api.Diagnostics;
-using TennisBookings.Merchandise.Api.External.Database;
 using TennisBookings.Merchandise.Api.IntegrationTests.Fakes;
 using Xunit;
 
@@ -50,36 +48,6 @@ namespace TennisBookings.Merchandise.Api.IntegrationTests.Middleware
             Assert.Equal(1, metric2.Increment);
             Assert.Equal("status_code:200", metric2.Tags[0]);
             Assert.Equal($"user_agent:{userAgent}", metric2.Tags[1]);
-        }
-
-        [Fact]
-        public async Task Exception_ResultsInExpectedMetric()
-        {
-            const string userAgent = "SomeProduct/1.0";
-            const string correlationId = "ABC123";
-
-            var factory = _factory.WithWebHostBuilder(builder =>
-            {
-                builder.ConfigureTestServices(services =>
-                {
-                    services.AddSingleton<ICloudDatabase>(new FakeCloudDatabase { ShouldThrow = true });
-                });
-            });
-
-            // Using Request builder to set the headers
-            await factory.Server.CreateRequest("/api/products")
-                .AddHeader("User-Agent", userAgent)
-                .AddHeader("Correlation-Id", correlationId)
-                .GetAsync();
-
-            var metricsRecorder = factory.Services.GetRequiredService<IMetricRecorder>() as FakeMetricRecorder;
-
-            var metric = metricsRecorder.Metrics.FirstOrDefault();
-
-            Assert.Equal("unhandled-exception", metric.Name);
-            Assert.Equal(1, metric.Increment);
-            Assert.Equal($"correlation_id:{correlationId}", metric.Tags[0]);
-            Assert.Equal($"user_agent:{userAgent}", metric.Tags[1]);
         }
     }
 }
