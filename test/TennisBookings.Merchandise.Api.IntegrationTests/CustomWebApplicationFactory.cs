@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
+using TennisBookings.Merchandise.Api.Diagnostics;
 using TennisBookings.Merchandise.Api.External.Database;
 using TennisBookings.Merchandise.Api.IntegrationTests.Fakes;
 
@@ -27,6 +28,7 @@ namespace TennisBookings.Merchandise.Api.IntegrationTests
             builder.ConfigureTestServices(services =>
             {
                 services.AddSingleton<ICloudDatabase>(FakeCloudDatabase);
+                services.AddSingleton<IMetricRecorder>(new FakeMetricRecorder());
             });
         }
     }
