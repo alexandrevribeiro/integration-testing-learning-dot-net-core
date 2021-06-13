@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -53,6 +54,30 @@ namespace TennisBookings.Merchandise.Api.IntegrationTests.Controllers
             Assert.Equal(firstProduct.Name, product.Name);
         }
 
+        [Theory]
+        [MemberData(nameof(GetInvalidInputs))]
+        public async Task Post_WithoutName_ReturnsBadRequest(TestProductInputModel productInputModel)
+        {
+            var response = await _client.PostAsJsonAsync("", productInputModel, JsonSerializerHelper.DefaultSerialisationOptions);
+
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        }
+
+        [Theory]
+        [MemberData(nameof(GetInvalidInputsAndProblemDetailsErrorValidator))]
+        public async Task Post_WithInvalidName_ReturnsExpectedProblemDetails(TestProductInputModel productInputModel,
+            Action<KeyValuePair<string, string[]>> validator)
+        {
+            var response = await _client.PostAsJsonAsync("", productInputModel, JsonSerializerHelper.DefaultSerialisationOptions);
+            var problemDetails = await response.Content.ReadFromJsonAsync<ValidationProblemDetails>();
+
+            Assert.Collection(problemDetails.Errors, validator);
+        }
+
+        /*
+        
+        Original tests before using Theory:
+
         [Fact]        
         public async Task Post_WithoutName_ReturnsBadRequest()
         {
@@ -78,6 +103,7 @@ namespace TennisBookings.Merchandise.Api.IntegrationTests.Controllers
                 Assert.Equal("The Name field is required.", error);
             });
         }
+        */
 
         #region Helping methods
 
@@ -92,6 +118,151 @@ namespace TennisBookings.Merchandise.Api.IntegrationTests.Controllers
                 InternalReference = "ABC123",
                 Price = 4.00m
             };
+        }
+
+        public static IEnumerable<object[]> GetInvalidInputsAndProblemDetailsErrorValidator()
+        {
+            var testData = new List<object[]>
+            {
+                new object[]
+                {
+                    GetValidProductInputModel().CloneWith(x => x.Id = null),
+                    new Action<KeyValuePair<string, string[]>>(kvp =>
+                    {
+                        Assert.Equal("Id", kvp.Key);
+                        var error = Assert.Single(kvp.Value);
+                        Assert.Equal("A non-default ID is required.", error);
+                    })
+                },
+
+                new object[]
+                {
+                    GetValidProductInputModel().CloneWith(x => x.Id = Guid.Empty.ToString()),
+                    new Action<KeyValuePair<string, string[]>>(kvp =>
+                    {
+                        Assert.Equal("Id", kvp.Key);
+                        var error = Assert.Single(kvp.Value);
+                        Assert.Equal("A non-default ID is required.", error);
+                    })
+                },
+
+                new object[]
+                {
+                    GetValidProductInputModel().CloneWith(x => x.Id = "NOT-A-GUID"),
+                    new Action<KeyValuePair<string, string[]>>(kvp =>
+                    {
+                        Assert.Equal("$.Id", kvp.Key);
+                        var error = Assert.Single(kvp.Value);
+                        Assert.StartsWith("The JSON value could not be converted to System.Guid.", error);
+                    })
+                },
+
+                new object[]
+                {
+                    GetValidProductInputModel().CloneWith(x => x.Name = null),
+                    new Action<KeyValuePair<string, string[]>>(kvp =>
+                    {
+                        Assert.Equal("Name", kvp.Key);
+                        var error = Assert.Single(kvp.Value);
+                        Assert.Equal("The Name field is required.", error);
+                    })
+                },
+
+                new object[]
+                {
+                    GetValidProductInputModel().CloneWith(x => x.Name =  new string('a', 257)),
+                    new Action<KeyValuePair<string, string[]>>(kvp =>
+                    {
+                         Assert.Equal("Name", kvp.Key);
+                        var error = Assert.Single(kvp.Value);
+                        Assert.Equal("The field Name must be a string with a maximum length of 256.", error);
+                    })
+                },
+
+                new object[]
+                {
+                    GetValidProductInputModel().CloneWith(x => x.Description = null),
+                    new Action<KeyValuePair<string, string[]>>(kvp =>
+                    {
+                        Assert.Equal("Description", kvp.Key);
+                        var error = Assert.Single(kvp.Value);
+                        Assert.Equal("The Description field is required.", error);
+                    })
+                },
+
+                new object[]
+                {
+                    GetValidProductInputModel().CloneWith(x => x.Category = null),
+                    new Action<KeyValuePair<string, string[]>>(kvp =>
+                    {
+                        Assert.Equal("Category", kvp.Key);
+                        var error = Assert.Single(kvp.Value);
+                        Assert.Equal("The Category field is required.", error);
+                    })
+                },
+
+                new object[]
+                {
+                    GetValidProductInputModel().CloneWith(x => x.Category = "NOT ALLOWED"),
+                    new Action<KeyValuePair<string, string[]>>(kvp =>
+                    {
+                        Assert.Equal("Category", kvp.Key);
+                        var error = Assert.Single(kvp.Value);
+                        Assert.Equal("The category did not match any of the allowed categories.", error);
+                    })
+                },
+
+                new object[]
+                {
+                    GetValidProductInputModel().CloneWith(x => x.Price = null),
+                    new Action<KeyValuePair<string, string[]>>(kvp =>
+                    {
+                        Assert.Equal("Price", kvp.Key);
+                        var error = Assert.Single(kvp.Value);
+                        Assert.Equal("The field Price must be between 0,01 and 10000.", error);
+                    })
+                },
+
+                new object[]
+                {
+                    GetValidProductInputModel().CloneWith(x => x.Price = 0m),
+                    new Action<KeyValuePair<string, string[]>>(kvp =>
+                    {
+                        Assert.Equal("Price", kvp.Key);
+                        var error = Assert.Single(kvp.Value);
+                        Assert.Equal("The field Price must be between 0,01 and 10000.", error);
+                    })
+                },
+
+                new object[]
+                {
+                    GetValidProductInputModel().CloneWith(x => x.Price = 10000.01m),
+                    new Action<KeyValuePair<string, string[]>>(kvp =>
+                    {
+                        Assert.Equal("Price", kvp.Key);
+                        var error = Assert.Single(kvp.Value);
+                        Assert.Equal("The field Price must be between 0,01 and 10000.", error);
+                    })
+                },
+
+                 new object[]
+                {
+                    GetValidProductInputModel().CloneWith(x => x.InternalReference = null),
+                    new Action<KeyValuePair<string, string[]>>(kvp =>
+                    {
+                        Assert.Equal("InternalReference", kvp.Key);
+                        var error = Assert.Single(kvp.Value);
+                        Assert.Equal("The InternalReference field is required.", error);
+                    })
+                },
+            };
+
+            return testData;
+        }
+
+        public static IEnumerable<object[]> GetInvalidInputs()
+        {
+            return GetInvalidInputsAndProblemDetailsErrorValidator().Select(x => new[] { x[0] });
         }
 
         #endregion
