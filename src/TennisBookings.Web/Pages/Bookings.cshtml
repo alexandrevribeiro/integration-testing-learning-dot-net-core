@@ -29,7 +29,11 @@
 {
     <div class="row">
         <div class="col-md-12">
-            <p>You have no upcoming court bookings.</p>
+            <p id="no-bookings">
+                You have no upcoming court bookings. Why not <a asp-page="FindAvailableCourts">
+                    make a booking
+                </a>?
+            </p>
         </div>
     </div>
 }

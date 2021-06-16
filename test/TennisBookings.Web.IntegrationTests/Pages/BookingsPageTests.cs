@@ -39,6 +39,10 @@ namespace TennisBookings.Web.IntegrationTests.Pages
             var table = content.QuerySelector("table");
 
             Assert.Null(table);
+
+            var paragraphs = content.QuerySelectorAll("#no-bookings");
+
+            Assert.Single(paragraphs);
         }
 
         [Fact]
