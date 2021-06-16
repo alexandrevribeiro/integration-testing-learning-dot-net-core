@@ -30,6 +30,7 @@ namespace TennisBookings.Web.IntegrationTests
             {
                 services.AddSingleton<IWeatherApiClient, FakeWithDataWeatherApiClient>();
                 services.AddSingleton<IDateTime, FixedDateTime>();
+                AddInMemoryDatabase(services);
             });
         }
 
